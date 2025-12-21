@@ -42,7 +42,7 @@ const Home: React.FC = () => {
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-display font-extrabold text-foreground mb-8 animate-fade-up leading-[1.1] tracking-tight" style={{ animationDelay: '0.1s' }}>
               Share Food,{' '}
-              <span className="gradient-text relative inline-block">
+              <span className="gradient-text relative inline-block pb-2">
                 Share Hope
                 <svg className="absolute w-full h-3 -bottom-1 left-0 text-primary/30" viewBox="0 0 100 10" preserveAspectRatio="none">
                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="3" fill="none" />
@@ -284,48 +284,64 @@ const Home: React.FC = () => {
       {/* Team Section */}
       <section className="py-20 bg-background text-center">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-display font-bold text-foreground mb-12">
+          <h2 className="text-3xl font-display font-bold text-foreground mb-6">
             Meet the Team <span className="text-primary text-xl block mt-2 font-sans font-medium">Batch 3</span>
           </h2>
 
+          <div className="mb-12 inline-block px-6 py-3 rounded-full bg-primary/5 border border-primary/10">
+            <p className="text-muted-foreground font-medium">
+              Developed under the esteemed guidance of <span className="text-primary font-bold">Mrs. M. Predheepa, M.E.</span>
+            </p>
+          </div>
+
           <div className="flex flex-wrap justify-center gap-8 max-w-4xl mx-auto">
             {[
-              { name: "K. Jothilingam", id: "24506377", role: "Team Lead" },
-              { name: "S. Jayanth", id: "24506374", role: "Developer" },
-              { name: "V. Inbaraj", id: "24506373", role: "Developer" },
-              { name: "V. Dharan", id: "24506357", role: "Developer" }
+              { name: "K. Jothilingam", id: "24506377", role: "Team Lead", initials: "JL" },
+              { name: "S. Jayanth", id: "24506374", role: "Developer", initials: "JY" },
+              { name: "V. Inbaraj", id: "24506373", role: "Developer", initials: "IR" },
+              { name: "V. Dharan", id: "24506357", role: "Developer", initials: "DR" }
             ].map((member, index) => (
               <div
                 key={index}
-                className={`glass-card p-6 rounded-xl w-64 transition-all duration-300 animate-fade-up relative overflow-hidden group ${member.role === 'Team Lead'
-                  ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 shadow-lg shadow-primary/10 scale-105 hover:scale-110 z-10'
-                  : 'hover:scale-105'
+                className={`group relative p-6 rounded-2xl w-64 transition-all duration-300 animate-fade-up overflow-hidden hover:-translate-y-2
+                  ${member.role === 'Team Lead'
+                    ? 'bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 shadow-xl shadow-primary/10'
+                    : 'bg-white dark:bg-zinc-900 border border-border hover:shadow-lg hover:border-primary/30'
                   }`}
                 style={{ animationDelay: `${0.1 * index}s` }}
               >
+                {/* Decorative background gradients */}
+                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-24 h-24 rounded-full bg-primary/10 blur-xl group-hover:bg-primary/20 transition-all duration-500" />
+                <div className="absolute bottom-0 left-0 -ml-8 -mb-8 w-24 h-24 rounded-full bg-accent/10 blur-xl group-hover:bg-accent/20 transition-all duration-500" />
+
                 {member.role === 'Team Lead' && (
-                  <div className="absolute top-0 right-0 p-2">
-                    <div className="bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1">
+                  <div className="absolute top-3 right-3">
+                    <div className="bg-primary text-primary-foreground text-[10px] uppercase font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 animate-pulse-slow">
                       <Sparkles className="h-2 w-2" /> Lead
                     </div>
                   </div>
                 )}
 
-                <div className={`h-20 w-20 rounded-full mx-auto flex items-center justify-center mb-4 transition-colors ${member.role === 'Team Lead' ? 'bg-primary text-primary-foreground shadow-md' : 'bg-primary/10 text-primary'
+                <div className={`relative h-24 w-24 rounded-2xl mx-auto flex items-center justify-center mb-4 transition-all duration-300 transform group-hover:scale-110 shadow-md
+                  ${member.role === 'Team Lead'
+                    ? 'bg-gradient-to-br from-primary to-emerald-600 text-white shadow-primary/20'
+                    : 'bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-700 text-zinc-600 dark:text-zinc-300'
                   }`}>
-                  <span className="text-2xl font-bold">{member.name.charAt(0)}</span>
+                  <span className="text-3xl font-bold font-display">{member.initials}</span>
                 </div>
 
-                <h3 className="font-bold text-foreground text-lg">{member.name}</h3>
-                <p className="text-muted-foreground font-mono text-sm mt-1 mb-2">{member.id}</p>
+                <div className="relative">
+                  <h3 className="font-bold text-foreground text-lg group-hover:text-primary transition-colors">{member.name}</h3>
+                  <p className="text-muted-foreground font-mono text-xs mt-1 mb-3 opacity-80">{member.id}</p>
 
-                {member.role === 'Team Lead' && (
-                  <div className="inline-block mt-2">
-                    <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
-                      Team Lead
-                    </span>
+                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium 
+                     ${member.role === 'Team Lead'
+                      ? 'bg-primary/10 text-primary border border-primary/20'
+                      : 'bg-muted text-muted-foreground border border-border'
+                    }`}>
+                    {member.role === 'Developer' ? '< Dev >' : member.role}
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
