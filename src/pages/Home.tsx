@@ -4,10 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Leaf, Heart, Users, MapPin, ArrowRight, Sparkles } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
+import DonationMap from '@/components/DonationMap';
+import { Donation } from '@/types';
+import { getAvailableDonations } from '@/services/donationService';
 
 const Home: React.FC = () => {
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, loading } = useAuth();
   const navigate = useNavigate();
+  const [donations, setDonations] = React.useState<Donation[]>([]);
+
+  React.useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        const data = await getAvailableDonations();
+        setDonations(data);
+      } catch (error) {
+        console.error("Error fetching donations for map:", error);
+      }
+    };
+    fetchDonations();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -40,13 +56,24 @@ const Home: React.FC = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center animate-fade-up" style={{ animationDelay: '0.3s' }}>
-              {currentUser && userData ? (
-                <Link to={userData.role === 'donor' ? '/donor/dashboard' : '/ngo/dashboard'}>
-                  <Button variant="hero" size="xl" className="w-full sm:w-auto text-lg h-14 px-8 shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
-                    Go to Dashboard
-                    <ArrowRight className="h-5 w-5 ml-2" />
+              {/* Hero Buttons: Show loading, or dashboard, or sign-in */}
+              {loading ? (
+                <Button variant="ghost" size="xl" disabled className="w-full sm:w-auto h-14 px-8 border-2 bg-white/50 animate-pulse">
+                  Loading...
+                </Button>
+              ) : currentUser ? (
+                userData ? (
+                  <Link to={userData.role === 'donor' ? '/donor/dashboard' : userData.role === 'volunteer' ? '/volunteer/dashboard' : '/ngo/dashboard'}>
+                    <Button variant="hero" size="xl" className="w-full sm:w-auto text-lg h-14 px-8 shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1">
+                      Go to Dashboard
+                      <ArrowRight className="h-5 w-5 ml-2" />
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button variant="destructive" size="xl" onClick={() => window.location.reload()} className="w-full sm:w-auto h-14 px-8 shadow-xl">
+                    Retry Loading Profile
                   </Button>
-                </Link>
+                )
               ) : (
                 <>
                   <Link to="/signup">
@@ -81,6 +108,21 @@ const Home: React.FC = () => {
         </div>
       </div >
 
+      {/* Map Section */}
+      <section className="py-16 container mx-auto px-4">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-display font-bold text-foreground mb-4">
+            Live Donations Near You
+          </h2>
+          <p className="text-muted-foreground">
+            Explore active food donations in your area and help bridge the gap.
+          </p>
+        </div>
+        <div className="max-w-5xl mx-auto animate-fade-up">
+          <DonationMap donations={donations} />
+        </div>
+      </section>
+
       {/* Stats Section */}
       < section className="py-16 bg-muted/30 relative" >
         <div className="absolute inset-0 aurora-bg opacity-30 pointer-events-none" />
@@ -105,49 +147,60 @@ const Home: React.FC = () => {
       </section >
 
       {/* How It Works */}
-      < section className="py-20" >
+      <section className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
               How FoodShare Works
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              A simple process to connect food donors with organizations that can distribute it to those in need.
+              A seamless ecosystem connecting donors, volunteers, and NGOs to fight hunger.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-6">
             {[
               {
                 step: '01',
-                title: 'Donors Post Food',
-                description: 'Restaurants, caterers, and individuals list surplus food with details and pickup location.',
+                title: 'List Surplus',
+                description: 'Donors post food details and location in seconds.',
+                icon: Sparkles,
                 color: 'bg-primary/10 text-primary'
               },
               {
                 step: '02',
-                title: 'NGOs Accept Donations',
-                description: 'Nearby NGOs receive real-time notifications and can accept available donations.',
-                color: 'bg-accent/10 text-accent'
+                title: 'NGOs Accept',
+                description: 'Local NGOs get notified and claim the donation.',
+                icon: Heart,
+                color: 'bg-rose-500/10 text-rose-600'
               },
               {
                 step: '03',
-                title: 'Food Gets Distributed',
-                description: 'NGOs pick up the food and distribute it to communities and individuals in need.',
-                color: 'bg-success/10 text-success'
+                title: 'Volunteer Pickup',
+                description: 'Volunteers or NGOs transport the food safely.',
+                icon: MapPin,
+                color: 'bg-amber-500/10 text-amber-600'
+              },
+              {
+                step: '04',
+                title: 'Impact Created',
+                description: 'Food feeds the hungry, not the landfill.',
+                icon: Leaf,
+                color: 'bg-emerald-500/10 text-emerald-600'
               }
             ].map((item, index) => (
-              <div key={index} className="glass-card rounded-2xl p-8 text-center hover:scale-[1.02] transition-transform duration-300 animate-fade-up" style={{ animationDelay: `${0.1 * index}s` }}>
-                <div className={`inline-flex items-center justify-center h-16 w-16 rounded-2xl ${item.color} text-2xl font-bold mb-6`}>
-                  {item.step}
+              <div key={index} className="glass-card rounded-2xl p-6 text-center hover:scale-[1.02] transition-transform duration-300 animate-fade-up group" style={{ animationDelay: `${0.1 * index}s` }}>
+                <div className={`inline-flex items-center justify-center h-14 w-14 rounded-2xl ${item.color} mb-6 group-hover:scale-110 transition-transform`}>
+                  <item.icon className="h-7 w-7" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mb-3">{item.title}</h3>
-                <p className="text-muted-foreground">{item.description}</p>
+                <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Step {item.step}</div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                <p className="text-sm text-muted-foreground">{item.description}</p>
               </div>
             ))}
           </div>
         </div>
-      </section >
+      </section>
 
       {/* Testimonials */}
       < section className="py-20 bg-background relative overflow-hidden" >
@@ -245,8 +298,8 @@ const Home: React.FC = () => {
               <div
                 key={index}
                 className={`glass-card p-6 rounded-xl w-64 transition-all duration-300 animate-fade-up relative overflow-hidden group ${member.role === 'Team Lead'
-                    ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 shadow-lg shadow-primary/10 scale-105 hover:scale-110 z-10'
-                    : 'hover:scale-105'
+                  ? 'border-primary/50 bg-primary/5 hover:bg-primary/10 shadow-lg shadow-primary/10 scale-105 hover:scale-110 z-10'
+                  : 'hover:scale-105'
                   }`}
                 style={{ animationDelay: `${0.1 * index}s` }}
               >

@@ -23,6 +23,7 @@ const Profile: React.FC = () => {
     const [bio, setBio] = useState('');
     const [organizationName, setOrganizationName] = useState('');
     const [photoURL, setPhotoURL] = useState('');
+    const [address, setAddress] = useState(''); // Added address state
 
     useEffect(() => {
         if (userData) {
@@ -31,6 +32,7 @@ const Profile: React.FC = () => {
             setBio(userData.bio || '');
             setOrganizationName(userData.organizationName || '');
             setPhotoURL(userData.photoURL || '');
+            setAddress(userData.address || ''); // Load address
 
             // Load Stats
             if (currentUser) {
@@ -59,13 +61,21 @@ const Profile: React.FC = () => {
 
     const handleSave = async () => {
         if (!currentUser) return;
+
+        // Validation for NGO
+        if (userData.role === 'ngo' && !address.trim()) {
+            toast({ title: "Address is required for NGOs", variant: "destructive" });
+            return;
+        }
+
         setLoading(true);
         try {
             await updateUserProfile(currentUser.uid, {
                 displayName,
                 phone,
                 bio,
-                organizationName
+                organizationName,
+                address // Save address
             });
             setIsEditing(false);
             toast({ title: "Profile updated successfully!" });
@@ -217,7 +227,7 @@ const Profile: React.FC = () => {
 
                                 {userData.role === 'ngo' && (
                                     <div className="space-y-2">
-                                        <Label htmlFor="orgName">Organization Name</Label>
+                                        <Label htmlFor="orgName">Organization Name <span className="text-destructive">*</span></Label>
                                         <div className="relative">
                                             <Building2 className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                             <Input
@@ -226,10 +236,27 @@ const Profile: React.FC = () => {
                                                 onChange={(e) => setOrganizationName(e.target.value)}
                                                 disabled={!isEditing}
                                                 className="pl-9"
+                                                required
                                             />
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="address">Address {userData.role === 'ngo' && <span className="text-destructive">*</span>}</Label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="address"
+                                            value={address}
+                                            onChange={(e) => setAddress(e.target.value)}
+                                            disabled={!isEditing}
+                                            className="pl-9"
+                                            placeholder="Full Address (for navigation)"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Required for delivery navigation.</p>
+                                </div>
 
                                 <div className="space-y-2">
                                     <Label htmlFor="email">Email Address</Label>

@@ -7,10 +7,13 @@ import {
   acceptDonation,
   updateDonationStatus
 } from '@/services/donationService';
+import { updateDoc, doc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import Navbar from '@/components/Navbar';
 import DonationCard from '@/components/DonationCard';
+import InventoryManager from '@/components/InventoryManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Package, Clock, CheckCircle, Search, Filter } from 'lucide-react';
+import { Loader2, Package, Clock, CheckCircle, Search, Filter, ClipboardList } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 
@@ -66,7 +69,8 @@ const NGODashboard: React.FC = () => {
         donation.id,
         currentUser.uid,
         userData.organizationName || userData.displayName,
-        userData.phone
+        userData.phone,
+        userData.address // Pass address
       );
       toast({
         title: 'Donation accepted!',
@@ -83,12 +87,25 @@ const NGODashboard: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (donationId: string, status: DonationStatus) => {
+  const handleUpdateStatus = async (donationId: string, status: any) => { // relaxing type to allow delivery status strings
     try {
-      await updateDonationStatus(donationId, status);
+      // Check if this is a delivery status update or main status update
+      const deliveryStatuses = ['available_for_pickup', 'assigned', 'picked_up', 'delivered'];
+
+      if (deliveryStatuses.includes(status)) {
+        // Direct update for delivery status fields
+        await updateDoc(doc(db, 'donations', donationId), {
+          deliveryStatus: status,
+          updatedAt: new Date()
+        });
+      } else {
+        // Regular status update (pending -> accepted -> completed -> cancelled)
+        await updateDonationStatus(donationId, status);
+      }
+
       toast({
         title: 'Status updated',
-        description: `Donation marked as ${status}.`,
+        description: `Donation updated to ${status}.`,
       });
     } catch (err) {
       console.error('Update status error:', err);
@@ -140,7 +157,7 @@ const NGODashboard: React.FC = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="glass-card rounded-xl p-5 hover:shadow-md transition-shadow">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -178,16 +195,20 @@ const NGODashboard: React.FC = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-muted/40 p-1 rounded-xl">
-            <TabsTrigger value="available" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+          <TabsList className="bg-muted/40 p-1 rounded-xl flex-wrap h-auto w-full justify-start overflow-x-auto">
+            <TabsTrigger value="available" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1 sm:flex-none">
               <Package className="h-4 w-4 mr-2" />
               Available Donations
               <span className="ml-2 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">{stats.available}</span>
             </TabsTrigger>
-            <TabsTrigger value="my-pickups" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+            <TabsTrigger value="my-pickups" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1 sm:flex-none">
               <Clock className="h-4 w-4 mr-2" />
               My Pickups
               <span className="ml-2 bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full">{myDonations.length}</span>
+            </TabsTrigger>
+            <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm flex-1 sm:flex-none">
+              <ClipboardList className="h-4 w-4 mr-2" />
+              Inventory
             </TabsTrigger>
           </TabsList>
 
@@ -208,7 +229,7 @@ const NGODashboard: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredAvailable.map((donation) => (
                   <DonationCard
                     key={donation.id}
@@ -233,7 +254,7 @@ const NGODashboard: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myDonations.map((donation) => (
                   <DonationCard
                     key={donation.id}
@@ -244,6 +265,12 @@ const NGODashboard: React.FC = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="inventory" className="animate-fade-in">
+            <div className="glass-card rounded-xl p-6">
+              <InventoryManager />
+            </div>
           </TabsContent>
         </Tabs>
       </main>

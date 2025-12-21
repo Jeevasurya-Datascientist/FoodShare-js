@@ -7,7 +7,7 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
 
@@ -81,24 +81,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+      setLoading(true); // Set loading true while fetching user data
 
       if (user) {
         const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
 
-        if (userDocSnap.exists()) {
-          setUserData(userDocSnap.data() as User);
-        }
+        // Use onSnapshot for realtime updates
+        const unsubscribeSnapshot = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUserData(docSnap.data() as User);
+          } else {
+            // Handle case where auth exists but firestore doc doesn't (rare but possible)
+            setUserData(null);
+          }
+          setLoading(false);
+        }, (error) => {
+          console.error("Error fetching user data:", error);
+          setLoading(false);
+        });
+
+        // Cleanup snapshot listener on unmount or auth change
+        return () => unsubscribeSnapshot();
       } else {
         setUserData(null);
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => unsubscribeAuth();
   }, []);
 
   const value: AuthContextType = {

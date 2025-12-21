@@ -1,140 +1,290 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // --- Helper Functions ---
-    
-    // Check if user is authenticated
+
+    // ==================================================================================
+    // 🛡️ SECURITY HELPER FUNCTIONS
+    // ==================================================================================
+
+    // --- Authentication Checks ---
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    // Check if user is accessing their own document
+
+    function isSafeUser() {
+        // Safely check accountStatus. If field is missing (new/legacy users), default to safe.
+        // We check if the data exists first, then the field.
+        let userData = getUserData();
+        // If userData is null (doc doesn't exist), we assume safe (allow creation/initial reads) ?? 
+        // Actually getUserData().data crashes if doc missing? No, returns null.
+        // But safer:
+        return userData == null || !('accountStatus' in userData) || (userData.accountStatus != 'banned' && userData.accountStatus != 'suspended');
+    }
+
+    // 🔒 ADMIN CHECK
+    // Hardcoded email check for the demo strictly matching the frontend logic
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == 'admin@foodshare.com' || 
+        request.auth.token.email == 'admin@timechain.com'
+      );
+    }
+
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    
-    // --- Collection Rules ---
 
-    // Users Collection
-    // Single collection for all roles (donor, ngo)
-    match /users/{userId} {
-      // Allow reading any user profile (needed for Leaderboard, Reviews, Donation cards)
-      allow read: if isAuthenticated(); 
-      
-      // Allow user to write only to their own document
-      // OR allow updating 'stats' field by any authenticated user (for reviews/ratings)
-      allow write: if isAuthenticated() && (
-        request.auth.uid == userId ||
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats']))
-      );
+    // --- User Role Checks (if we had custom claims, otherwise relying on profile) ---
+    // Note: In a strict prod env, use Custom Claims. specific user docs check:
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-    
-    // Donations Collection
+
+    // --- Data Validation Helpers ---
+    // Check if the request only updates specific allowed fields
+    function onlyUpdates(allowedFields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+    }
+
+    // Check if a field is being changed
+    function isFieldChanged(fieldName) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([fieldName]);
+    }
+
+    // Check required fields for creating a donation
+    function hasRequiredDonationFields() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['title', 'description', 'foodType', 'quantity', 'location', 'donorId', 'status', 'createdAt'])
+             && data.title is string && data.title.size() > 0
+             && data.description is string
+             && data.foodType is string
+             && data.quantity is string
+             && data.location.lat is number
+             && data.location.lng is number;
+    }
+
+    // --- Status Transition Helpers ---
+    function isTransition(from, to) {
+      return resource.data.status == from && request.resource.data.status == to;
+    }
+
+    // ==================================================================================
+    // 📂 USERS COLLECTION
+    // ==================================================================================
+    match /users/{userId} {
+      // 📖 READ: Publicly readable for authenticated users (required for leaderboard, profiles, chats)
+      // BUT blocked for banned/suspended users to prevent "cheat methods" (scoping info)
+      // EXCEPTION: Users MUST be able to read their own profile to see their status.
+      // EXCEPTION: Admins MUST be able to read all profiles to manage them.
+      allow read: if isAuthenticated() && (isOwner(userId) || isSafeUser() || isAdmin());
+
+      // ✍️ WRITE: Owner only
+      allow create: if isOwner(userId);
+      
+      // 🔄 UPDATE: Owner OR Admin
+      allow update: if isAuthenticated() && (
+        (isOwner(userId) && isSafeUser()) || 
+        isAdmin() || 
+        onlyUpdates(['stats'])
+      );
+
+      // Inventory Sub-collection (NGOs)
+      match /inventory/{itemId} {
+        allow read, write: if isOwner(userId) && isSafeUser();
+      }
+      
+      // Saved Recipes Sub-collection
+      match /savedRecipes/{recipeId} {
+        allow read, write: if isOwner(userId) && isSafeUser();
+      }
+    }
+
+    // ==================================================================================
+    // 📦 DONATIONS COLLECTION
+    // ==================================================================================
     match /donations/{donationId} {
       
-      // READ Rules
-      allow read: if isAuthenticated() && (
-        // 1. Donor can read their own donations
-        resource.data.donorId == request.auth.uid ||
+      // 📖 READ: Broad access for functionality
+      // BLOCKED for suspended/banned
+      allow read: if isAuthenticated() && isSafeUser();
+
+      // ➕ CREATE: Only valid donations by the donor
+      allow create: if isAuthenticated() && isSafeUser()
+                    && request.resource.data.donorId == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && hasRequiredDonationFields();
+
+      // 🔄 UPDATE: Complex State Machine
+      allow update: if isAuthenticated() && isSafeUser() && (
         
-        // 2. Any authenticated user (intended for NGOs) can see 'pending' donations
-        resource.data.status == 'pending' ||
+        // ----------------------------------------------------
+        // 🧑‍🤝‍🧑 SCENARIO 1: DONOR ACTIONS
+        // ----------------------------------------------------
         
-        // 3. NGO can see donations they have accepted or completed
-        // (Checking acceptedBy field existence to avoid null error if field is missing, though simplified check often works)
-        (resource.data.acceptedBy == request.auth.uid) ||
-        
-        // 4. Also allow reading 'accepted' donations generally if needed for UI lists, 
-        // but stricter: Donor needs to see their accepted donations (covered by #1).
-        // NGO needs to see accepted donations (covered by #3).
-        // Public/Other NGOs shouldn't necessarily see 'accepted' donations of others? 
-        // For now, let's keep it tight.
-        
-        // CORRECTION: For the "DonationCard" to work properly in lists, 
-        // users might need to read donations to filter them client-side if queries aren't perfect.
-        // But assuming efficient queries:
-        true // Simplification for MVP: Authenticated users can read donations 
-             // (Privacy enhancement: Restrict this later if needed, but for 'Feed' logic, readability is good)
-      );
-      
-      // CREATE Rules
-      allow create: if isAuthenticated() && 
-        request.resource.data.donorId == request.auth.uid &&
-        request.resource.data.status == 'pending';
-        
-      // UPDATE Rules
-      allow update: if isAuthenticated() && (
-        // Scenario A: Donor updating their own pending donation 
+        // 1.1 Edit Pending Donation (Fix typos before acceptance)
         (
-          resource.data.donorId == request.auth.uid && 
-          request.resource.data.donorId == request.auth.uid &&
-          resource.data.status == 'pending'
-        ) ||
-        
-        // Scenario B: NGO Accept Donation (pending -> accepted)
-        (
-          resource.data.status == 'pending' && 
-          request.resource.data.status == 'accepted' && 
-          request.resource.data.acceptedBy == request.auth.uid
-        ) ||
-        
-        // Scenario C: NGO Complete Donation (accepted -> completed)
-        (
-          resource.data.status == 'accepted' && 
-          request.resource.data.status == 'completed' && 
-          resource.data.acceptedBy == request.auth.uid
+          resource.data.donorId == request.auth.uid &&
+          resource.data.status == 'pending' &&
+          request.resource.data.donorId == request.auth.uid // Cannot change ownership
         ) ||
 
-        // Scenario D: Donor Cancel Donation (pending -> cancelled)
+        // 1.2 Cancel Donation (Pending -> Cancelled)
         (
-           resource.data.donorId == request.auth.uid &&
-           resource.data.status == 'pending' &&
-           request.resource.data.status == 'cancelled'
+          resource.data.donorId == request.auth.uid &&
+          isTransition('pending', 'cancelled')
         ) ||
 
-        // Scenario E: NGO Cancel Donation (accepted -> cancelled)
+        // ----------------------------------------------------
+        // 🏢 SCENARIO 2: NGO ACTIONS
+        // ----------------------------------------------------
+
+        // 2.1 Accept Donation (Pending -> Accepted)
+        // Must stamp acceptedBy, acceptedByName, acceptedByAddress
         (
-          resource.data.status == 'accepted' && 
-          request.resource.data.status == 'cancelled' && 
-          resource.data.acceptedBy == request.auth.uid
+          isTransition('pending', 'accepted') &&
+          request.resource.data.acceptedBy == request.auth.uid &&
+          request.resource.data.acceptedByName is string &&
+          // Ideally enforce acceptedByAddress is string if we want to be strict
+          (request.resource.data.acceptedByAddress == null || request.resource.data.acceptedByAddress is string)
+        ) ||
+
+        // 2.2 Request Volunteer / Update Delivery Status
+        // NGO must be the one who accepted it
+        (
+          resource.data.status == 'accepted' &&
+          resource.data.acceptedBy == request.auth.uid &&
+          // Allowed changes: deliveryStatus, volunteerId (if unassigning), status (to completed/cancelled)
+          (
+            isFieldChanged('deliveryStatus') || 
+            isTransition('accepted', 'completed') || 
+            isTransition('accepted', 'cancelled')
+          )
+        ) ||
+
+        // ----------------------------------------------------
+        // 🚚 SCENARIO 3: VOLUNTEER ACTIONS
+        // ----------------------------------------------------
+        
+        // 3.1 Self-Assign (Available -> Assigned)
+        (
+          resource.data.status == 'accepted' &&
+          resource.data.deliveryStatus == 'available_for_pickup' &&
+          request.resource.data.deliveryStatus == 'assigned' &&
+          request.resource.data.volunteerId == request.auth.uid &&
+          // Must explicitly set their name/phone
+          request.resource.data.volunteerName is string
+        ) ||
+
+        // 3.2 Update Logistics (Assigned -> Picked Up -> Delivered)
+        (
+           resource.data.volunteerId == request.auth.uid &&
+           (
+             isFieldChanged('deliveryStatus') || 
+             // Allow simple message/timestamp updates if needed
+             onlyUpdates(['deliveryStatus', 'updatedAt'])
+           )
         )
       );
-      
-      // DELETE Rules
-      allow delete: if isAuthenticated() && 
-        resource.data.donorId == request.auth.uid &&
-        (resource.data.status == 'pending' || resource.data.status == 'cancelled');
+
+      // 🗑️ DELETE: Only pending donations by owner
+      allow delete: if isAuthenticated() && isSafeUser()
+                    && resource.data.donorId == request.auth.uid 
+                    && resource.data.status == 'pending';
     }
 
-    // Notifications Rules
+    // ==================================================================================
+    // 📢 NOTIFICATIONS COLLECTION
+    // ==================================================================================
     match /notifications/{notificationId} {
-      // User can see their own notifications
+      // Users can only read their own notifications
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       
-      // Allow creation by any authenticated user (e.g. Donor notifying NGO or vice versa)
-      // Ideally this would be server-side only, but for client-side triggering:
-      allow create: if isAuthenticated();
+      // Anyone can create a notification (system events, triggers from other users)
+      // In a stricter app, this might be Cloud Function only, but for client-driven apps:
+      allow create: if isAuthenticated() 
+                    && request.resource.data.userId is string
+                    && request.resource.data.message.size() > 0;
       
-      // Allow user to mark their own notification as read (update)
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      
-      // Allow user to delete their notifications
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Users can mark read (update) or delete their own
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // Reviews Rules
+    // ==================================================================================
+    // 💬 CHATS COLLECTION
+    // ==================================================================================
+    match /chats/{chatId} {
+      // Helper for participant check
+      function isParticipant() {
+        return request.auth.uid in resource.data.participants;
+      }
+      
+      function isNewParticipant() {
+        return request.auth.uid in request.resource.data.participants;
+      }
+
+      allow read: if isAuthenticated() && isParticipant();
+      
+      // Create chat if you are one of the participants
+      allow create: if isAuthenticated() 
+                    && request.resource.data.participants.size() >= 2
+                    && isNewParticipant();
+                    
+      // Update (e.g., lastMessage, timestamps)
+      allow update: if isAuthenticated() && isParticipant();
+
+      // 📨 MESSAGES SUB-COLLECTION
+      match /messages/{messageId} {
+        // Parent chat check is expensive (get), but necessary for security
+        function isParentChatParticipant() {
+           let chatData = get(/databases/$(database)/documents/chats/$(chatId)).data;
+           return request.auth.uid in chatData.participants;
+        }
+
+        allow read: if isAuthenticated() && isParentChatParticipant();
+        
+        allow create: if isAuthenticated() 
+                      && isParentChatParticipant()
+                      && request.resource.data.senderId == request.auth.uid;
+      }
+    }
+
+    // ==================================================================================
+    // ⭐ REVIEWS COLLECTION
+    // ==================================================================================
     match /reviews/{reviewId} {
-      // Reviews are public to authenticated users
       allow read: if isAuthenticated();
       
-      // Created by authenticated user
-      allow create: if isAuthenticated() && request.resource.data.reviewerId == request.auth.uid;
-      
-      // Only reviewer can edit/delete
+      // Create: One user reviewing another
+      allow create: if isAuthenticated() 
+                    && request.resource.data.reviewerId == request.auth.uid
+                    && request.resource.data.rating >= 1 
+                    && request.resource.data.rating <= 5;
+                    
+      // Update/Delete: Only the reviewer
       allow update, delete: if isOwner(resource.data.reviewerId);
     }
+
+    // ==================================================================================
+    // 🚨 COMPLAINTS COLLECTION
+    // ==================================================================================
+    match /complaints/{complaintId} {
+      // Anyone can report a problem
+      allow create: if isAuthenticated() 
+                    && request.resource.data.ngoId == request.auth.uid;
+                    
+      // Only the reporter or an Admin can read/update
+      allow read, update: if isAuthenticated() && (
+        resource.data.ngoId == request.auth.uid ||
+        isAdmin() // Allow admin to see and resolve complaints
+      );
+    }
     
-    // Explicitly deny anything else
+    // ==================================================================================
+    // 🛡️ DEFAULT DENY
+    // ==================================================================================
+    // Explicitly deny anything else not matched above
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

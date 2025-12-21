@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UserRole } from '@/types';
-import { Leaf, Loader2, AlertCircle, Heart, Building2, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Leaf, Loader2, AlertCircle, Heart, Building2, CheckCircle2, ArrowRight, Truck } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 import {
@@ -70,7 +70,12 @@ const Signup: React.FC = () => {
         title: 'Account created!',
         description: 'Welcome to FoodShare. Let\'s make a difference together.',
       });
-      navigate(role === 'donor' ? '/donor/dashboard' : '/ngo/dashboard');
+
+      if (sessionStorage.getItem('pendingRecipeIngredients')) {
+        navigate('/recipes');
+      } else if (role === 'volunteer') navigate('/volunteer/dashboard');
+      else if (role === 'ngo') navigate('/ngo/dashboard');
+      else navigate('/donor/dashboard');
     } catch (err: unknown) {
       console.error('Signup error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
@@ -160,7 +165,7 @@ const Signup: React.FC = () => {
           {/* Role Selection */}
           <div className="mb-8">
             <Label className="mb-3 block text-base font-medium">I am a...</Label>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <button
                 type="button"
                 onClick={() => setRole('donor')}
@@ -190,7 +195,23 @@ const Signup: React.FC = () => {
                   <Building2 className="h-5 w-5" />
                 </div>
                 <p className="font-semibold text-foreground">NGO</p>
-                <p className="text-xs text-muted-foreground mt-1">I represent an NGO</p>
+                <p className="text-xs text-muted-foreground mt-1">I represents an NGO</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setRole('volunteer')}
+                className={`p-4 rounded-xl border-2 transition-all duration-300 text-left group ${role === 'volunteer'
+                  ? 'border-primary bg-primary/5 shadow-sm'
+                  : 'border-muted bg-background hover:border-primary/50'
+                  }`}
+              >
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 transition-colors ${role === 'volunteer' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground group-hover:text-primary'
+                  }`}>
+                  <Truck className="h-5 w-5" />
+                </div>
+                <p className="font-semibold text-foreground">Volunteer</p>
+                <p className="text-xs text-muted-foreground mt-1">I want to deliver</p>
               </button>
             </div>
           </div>

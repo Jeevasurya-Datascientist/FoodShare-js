@@ -73,7 +73,8 @@ export const acceptDonation = async (
   donationId: string,
   ngoId: string,
   ngoName: string,
-  ngoPhone?: string
+  ngoPhone?: string,
+  ngoAddress?: string // Added address
 ): Promise<void> => {
   const donationRef = doc(db, DONATIONS_COLLECTION, donationId);
   await updateDoc(donationRef, {
@@ -81,6 +82,7 @@ export const acceptDonation = async (
     acceptedBy: ngoId,
     acceptedByName: ngoName,
     acceptedByPhone: ngoPhone || null,
+    acceptedByAddress: ngoAddress || null, // Save address
     updatedAt: Timestamp.now()
   });
 

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Package, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import SocialShare from '@/components/SocialShare';
 
 const DonorDashboard: React.FC = () => {
   const { currentUser, userData } = useAuth();
@@ -82,16 +83,24 @@ const DonorDashboard: React.FC = () => {
             </h1>
             <p className="text-muted-foreground">Manage your food donations</p>
           </div>
-          <Link to="/donor/add-donation">
-            <Button variant="hero">
-              <Plus className="h-4 w-4" />
-              Add Donation
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <SocialShare
+              title="My Impact on FoodShare"
+              text={`I'm proud to have shared ${stats.total} meals on FoodShare! Join me in reducing food waste.`}
+              url={window.location.origin}
+              variant="outline"
+            />
+            <Link to="/donor/add-donation">
+              <Button variant="hero">
+                <Plus className="h-4 w-4" />
+                Add Donation
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { label: 'Total Donations', value: stats.total, color: 'bg-primary/10 text-primary' },
             { label: 'Pending', value: stats.pending, color: 'status-pending' },
@@ -117,7 +126,7 @@ const DonorDashboard: React.FC = () => {
 
         {/* Loading State */}
         {loading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="glass-card rounded-xl p-6 space-y-4">
                 <div className="flex justify-between">
@@ -152,7 +161,7 @@ const DonorDashboard: React.FC = () => {
           </div>
         ) : (
           /* Donations Grid */
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {donations.map((donation) => (
               <DonationCard
                 key={donation.id}

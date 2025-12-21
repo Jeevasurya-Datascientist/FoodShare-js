@@ -19,6 +19,8 @@ import {
 import { ArrowLeft, Loader2, AlertCircle, Utensils, Package, Clock, MapPin, Image as ImageIcon, Camera, X, Phone } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { analyzeFoodImage } from '@/services/aiService';
+import { Sparkles, CheckCircle2, XCircle } from 'lucide-react';
 
 const GOOGLE_MAPS_API_KEY = 'YOUR_GOOGLE_MAPS_API_KEY'; // Kept generic for now
 
@@ -61,6 +63,8 @@ const AddDonation: React.FC = () => {
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [error, setError] = useState('');
 
   const handleInputChange = (field: keyof DonationFormData, value: string) => {
@@ -88,6 +92,52 @@ const AddDonation: React.FC = () => {
 
   const removeImage = (index: number) => {
     setImageFiles(prev => prev.filter((_, i) => i !== index));
+    if (imageFiles.length <= 1) setAiAnalysis(null); // Clear analysis if all images removed
+  };
+
+  const handleAnalyzeFood = async () => {
+    if (imageFiles.length === 0) {
+      toast({
+        title: "No Image",
+        description: "Please upload an image first to analyze.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setAnalyzing(true);
+    try {
+      // Convert first file to base64
+      const file = imageFiles[0];
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        try {
+          const result = await analyzeFoodImage(base64String);
+          setAiAnalysis(result);
+          toast({
+            title: "Analysis Complete",
+            description: `Food Safety Score: ${result.freshnessScore}/100`,
+          });
+
+          // Auto-fill tags if reliable
+          if (result.tags && result.tags.length > 0) {
+            // Optional: could append to description
+          }
+        } catch (err: any) {
+          toast({
+            title: "Analysis Failed",
+            description: err.message,
+            variant: "destructive"
+          });
+        } finally {
+          setAnalyzing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      setAnalyzing(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -365,6 +415,58 @@ const AddDonation: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* AI Analysis Section */}
+            {imageFiles.length > 0 && (
+              <div className="mt-6 border-t pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-sm">AI Safety Check</h3>
+                    <p className="text-xs text-muted-foreground">Verify food freshness and safety</p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleAnalyzeFood}
+                    disabled={analyzing}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    size="sm"
+                  >
+                    {analyzing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
+                    Analyze with AI
+                  </Button>
+                </div>
+
+                {aiAnalysis && (
+                  <div className={`p-4 rounded-lg border ${aiAnalysis.isEdible ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'} animate-fade-in`}>
+                    <div className="flex items-start gap-3">
+                      {aiAnalysis.isEdible ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`font-bold ${aiAnalysis.isEdible ? 'text-green-700' : 'text-red-700'}`}>
+                            {aiAnalysis.isEdible ? 'Likely Safe to Share' : 'Safety Concerns Detected'}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-white border font-mono">
+                            Score: {aiAnalysis.freshnessScore}/100
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground/80 mb-2">{aiAnalysis.safetyNotes}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {aiAnalysis.tags?.map((tag: string, i: number) => (
+                            <span key={i} className="text-xs px-2 py-1 rounded bg-white/50 border text-muted-foreground">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Location */}

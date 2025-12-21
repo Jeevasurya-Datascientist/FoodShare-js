@@ -6,13 +6,13 @@ import { getAnalytics } from "firebase/analytics";
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCI3Tx5_3m5frFZtMy-fu0f7zyzJUc2v-c",
-  authDomain: "foodshare-js.firebaseapp.com",
-  projectId: "foodshare-js",
-  storageBucket: "foodshare-js.firebasestorage.app",
-  messagingSenderId: "774953160212",
-  appId: "1:774953160212:web:7d3ccbc38db06cff922101",
-  measurementId: "G-1ZVMG58VS3"
+  apiKey: "AIzaSyBsb5CVctqMfWffxhtVZ2GQAIhptKZ4Od8",
+  authDomain: "foodshare-jscorp.firebaseapp.com",
+  projectId: "foodshare-jscorp",
+  storageBucket: "foodshare-jscorp.firebasestorage.app",
+  messagingSenderId: "603029864068",
+  appId: "1:603029864068:web:5ef613425f7d3e67e3ccd1",
+  measurementId: "G-N3F98S9NEB"
 };
 
 // Initialize Firebase
