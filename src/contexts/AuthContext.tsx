@@ -5,7 +5,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -18,6 +19,7 @@ interface AuthContextType {
   signup: (email: string, password: string, displayName: string, role: UserRole, phone?: string, organizationName?: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,6 +82,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUserData(null);
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -119,7 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signup,
     login,
-    logout
+    logout,
+    resetPassword
   };
 
   return (

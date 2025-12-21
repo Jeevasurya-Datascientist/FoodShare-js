@@ -10,6 +10,8 @@ import SecurityWaitwall from '@/components/SecurityWaitwall';
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import ForgotPassword from "./pages/ForgotPassword";
+import AuthAction from "./pages/AuthAction";
 import DonorDashboard from "./pages/DonorDashboard";
 import NGODashboard from "./pages/NGODashboard";
 import VolunteerDashboard from "./pages/VolunteerDashboard";
@@ -49,6 +51,8 @@ const App = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/auth/action" element={<AuthAction />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route
                   path="/donor/dashboard"
