@@ -313,6 +313,26 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
+            <div className="flex items-start gap-2 pt-2">
+              <input
+                type="checkbox"
+                id="terms"
+                required
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="terms"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-muted-foreground"
+                >
+                  I agree to the <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms & Conditions</Link>, <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>, and <Link to="/data-use" target="_blank" className="text-primary hover:underline">Data Usage Policy</Link>.
+                </label>
+                <p className="text-[0.8rem] text-muted-foreground">
+                  I consent to the collection of my data as outlined in the privacy policy.
+                </p>
+              </div>
+            </div>
+
             <Button type="submit" className="w-full h-11 text-base group" disabled={loading}>
               {loading ? (
                 <>

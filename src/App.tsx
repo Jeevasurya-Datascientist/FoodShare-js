@@ -20,6 +20,9 @@ import Profile from "./pages/Profile";
 
 import Leaderboard from "./pages/Leaderboard";
 import RecipeGenerator from "./pages/RecipeGenerator";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import DataUse from "./pages/DataUse";
 
 import { useEffect } from "react";
 import { BRANDING } from "@/constants/branding";
@@ -94,6 +97,9 @@ const App = () => {
                   }
                 />
                 <Route path="/recipes" element={<RecipeGenerator />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/data-use" element={<DataUse />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </SecurityWaitwall>
