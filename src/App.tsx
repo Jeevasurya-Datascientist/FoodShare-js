@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SecurityWaitwall from '@/components/SecurityWaitwall';
+import ScrollToTop from '@/components/ScrollToTop';
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -26,6 +27,7 @@ import RecipeGenerator from "./pages/RecipeGenerator";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import DataUse from "./pages/DataUse";
+import GuideAppreciation from "./pages/GuideAppreciation";
 
 import { useEffect } from "react";
 import { BRANDING } from "@/constants/branding";
@@ -46,6 +48,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <ScrollToTop />
           <AuthProvider>
             <SecurityWaitwall>
               <Routes>
@@ -106,6 +109,7 @@ const App = () => {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/data-use" element={<DataUse />} />
+                <Route path="/guide-appreciation" element={<GuideAppreciation />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </SecurityWaitwall>

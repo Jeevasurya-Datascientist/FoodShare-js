@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import DonationMap from '@/components/DonationMap';
 import { Donation } from '@/types';
 import { getAvailableDonations } from '@/services/donationService';
+import Footer from '@/components/Footer';
 
 const Home: React.FC = () => {
   const { currentUser, userData, loading } = useAuth();
@@ -349,23 +350,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Footer */}
-      < footer className="py-12 bg-foreground" >
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Leaf className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-xl font-display font-bold text-background">FeedReach</span>
-            </div>
-            <p className="text-background/60 text-sm">
-              © 2026 FeedReach. Reducing food waste, one meal at a time.
-              <br />
-              <span className="text-xs opacity-50">Powered by JS Corporations</span>
-            </p>
-          </div>
-        </div>
-      </footer >
+      <Footer />
     </div >
   );
 };
