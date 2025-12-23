@@ -7,6 +7,7 @@ import {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
+  sendEmailVerification as firebaseSendEmailVerification,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -20,6 +21,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,6 +88,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const sendVerificationEmail = async () => {
+    if (auth.currentUser) {
+      await firebaseSendEmailVerification(auth.currentUser);
+    }
+  };
+
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -126,7 +134,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signup,
     login,
     logout,
-    resetPassword
+    resetPassword,
+    sendVerificationEmail
   };
 
   return (

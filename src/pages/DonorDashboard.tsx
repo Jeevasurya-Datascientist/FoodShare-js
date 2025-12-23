@@ -85,8 +85,8 @@ const DonorDashboard: React.FC = () => {
           </div>
           <div className="flex gap-3">
             <SocialShare
-              title="My Impact on FoodShare"
-              text={`I'm proud to have shared ${stats.total} meals on FoodShare! Join me in reducing food waste.`}
+              title="My Impact on FeedReach"
+              text={`I'm proud to have shared ${stats.total} meals on FeedReach! Join me in reducing food waste.`}
               url={window.location.origin}
               variant="outline"
             />

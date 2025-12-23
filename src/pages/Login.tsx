@@ -61,7 +61,7 @@ const Login: React.FC = () => {
             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Leaf className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-xl font-display font-bold text-foreground">FoodShare</span>
+            <span className="text-xl font-display font-bold text-foreground">FeedReach</span>
           </Link>
         </div>
 
@@ -88,7 +88,7 @@ const Login: React.FC = () => {
         </div>
 
         <div className="relative z-10 text-sm text-muted-foreground">
-          © 2026 FoodShare. Reducing food waste, one meal at a time.
+          © 2026 FeedReach. Reducing food waste, one meal at a time.
         </div>
       </div>
 
@@ -99,7 +99,7 @@ const Login: React.FC = () => {
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <Leaf className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-lg font-display font-bold text-foreground">FoodShare</span>
+            <span className="text-lg font-display font-bold text-foreground">FeedReach</span>
           </Link>
         </div>
 

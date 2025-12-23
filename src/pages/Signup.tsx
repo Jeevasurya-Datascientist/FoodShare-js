@@ -8,6 +8,7 @@ import { UserRole } from '@/types';
 import { Leaf, Loader2, AlertCircle, Heart, Building2, CheckCircle2, ArrowRight, Truck } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+
 import {
   Select,
   SelectContent,
@@ -39,7 +40,7 @@ const Signup: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { signup } = useAuth();
+  const { signup, sendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,10 +67,23 @@ const Signup: React.FC = () => {
     try {
       const fullPhone = `${countryCode} ${phone}`;
       await signup(email, password, displayName, role, fullPhone, organizationName);
-      toast({
-        title: 'Account created!',
-        description: 'Welcome to FoodShare. Let\'s make a difference together.',
-      });
+
+      // Send verification email
+      try {
+        await sendVerificationEmail();
+        navigate('/verify-email');
+        toast({
+          title: 'Account created!',
+          description: 'Please check your email to verify your account.',
+        });
+        return;
+      } catch (emailError) {
+        console.error("Failed to send verification email:", emailError);
+        toast({
+          title: 'Account created!',
+          description: 'Welcome. Please verify your email from settings.',
+        });
+      }
 
       if (sessionStorage.getItem('pendingRecipeIngredients')) {
         navigate('/recipes');
@@ -103,7 +117,7 @@ const Signup: React.FC = () => {
             <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
               <Leaf className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-xl font-display font-bold text-foreground">FoodShare</span>
+            <span className="text-xl font-display font-bold text-foreground">FeedReach</span>
           </Link>
         </div>
 
@@ -130,7 +144,7 @@ const Signup: React.FC = () => {
         </div>
 
         <div className="relative z-10 text-sm text-muted-foreground">
-          © 2026 FoodShare. Reducing food waste, one meal at a time.
+          © 2026 FeedReach. Reducing food waste, one meal at a time.
         </div>
       </div>
 
@@ -141,7 +155,7 @@ const Signup: React.FC = () => {
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
               <Leaf className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-lg font-display font-bold text-foreground">FoodShare</span>
+            <span className="text-lg font-display font-bold text-foreground">FeedReach</span>
           </Link>
         </div>
 
@@ -332,6 +346,8 @@ const Signup: React.FC = () => {
                 </p>
               </div>
             </div>
+
+
 
             <Button type="submit" className="w-full h-11 text-base group" disabled={loading}>
               {loading ? (

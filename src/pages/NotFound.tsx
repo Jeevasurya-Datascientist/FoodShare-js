@@ -14,7 +14,7 @@ const NotFound = () => {
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
             <Leaf className="h-5 w-5 text-primary" />
           </div>
-          <span className="text-xl font-display font-bold text-foreground">FoodShare</span>
+          <span className="text-xl font-display font-bold text-foreground">FeedReach</span>
         </Link>
 
         <div className="text-8xl font-display font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-4">

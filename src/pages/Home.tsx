@@ -151,7 +151,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-4">
-              How FoodShare Works
+              How FeedReach Works
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
               A seamless ecosystem connecting donors, volunteers, and NGOs to fight hunger.
@@ -213,14 +213,14 @@ const Home: React.FC = () => {
               Community Stories
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Hear from the people making a real difference in our community using FoodShare.
+              Hear from the people making a real difference in our community using FeedReach.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                quote: "FoodShare made it incredibly easy for our restaurant to donate surplus food. Instead of throwing it away, we know it's going to someone who needs it.",
+                quote: "FeedReach made it incredibly easy for our restaurant to donate surplus food. Instead of throwing it away, we know it's going to someone who needs it.",
                 author: "Sarah Johnson",
                 role: "Restaurant Owner",
                 initials: "SJ"
@@ -269,11 +269,11 @@ const Home: React.FC = () => {
             </h2>
             <p className="text-muted-foreground mb-8 text-lg">
               Whether you're a restaurant with extra food or an NGO looking to serve your community,
-              join FoodShare today and be part of the solution.
+              join FeedReach today and be part of the solution.
             </p>
             <Link to="/signup">
               <Button variant="hero" size="xl">
-                Join FoodShare Now
+                Join FeedReach Now
                 <ArrowRight className="h-5 w-5 ml-2" />
               </Button>
             </Link>
@@ -356,10 +356,10 @@ const Home: React.FC = () => {
               <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                 <Leaf className="h-5 w-5 text-primary" />
               </div>
-              <span className="text-xl font-display font-bold text-background">FoodShare</span>
+              <span className="text-xl font-display font-bold text-background">FeedReach</span>
             </div>
             <p className="text-background/60 text-sm">
-              © 2026 FoodShare. Reducing food waste, one meal at a time.
+              © 2026 FeedReach. Reducing food waste, one meal at a time.
               <br />
               <span className="text-xs opacity-50">Powered by JS Corporations</span>
             </p>

@@ -53,7 +53,7 @@ const SecurityWaitwall: React.FC<SecurityWaitwallProps> = ({ children }) => {
                     </div>
                     <h1 className="text-2xl font-bold text-destructive mb-2">Account Permanently Banned</h1>
                     <p className="text-muted-foreground mb-6">
-                        Your access to FoodShare has been revoked due to serious violations of our community guidelines.
+                        Your access to FeedReach has been revoked due to serious violations of our community guidelines.
                     </p>
 
                     <div className="bg-muted p-4 rounded-lg text-left text-sm mb-6 space-y-3">

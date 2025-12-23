@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Leaf, Loader2, CheckCircle2, AlertCircle, ArrowRight, Mail } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
+
 const AuthAction = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -21,7 +22,9 @@ const AuthAction = () => {
     const [email, setEmail] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+
     const [verified, setVerified] = useState(false);
+
 
     useEffect(() => {
         // Initial Verification of the Code
@@ -135,7 +138,7 @@ const AuthAction = () => {
                         {mode === 'resetPassword' ? 'Password Reset!' : 'Email Verified!'}
                     </h2>
                     <p className="text-muted-foreground mb-8 text-lg">
-                        {success || 'Your email address has been successfully verified. You now have full access to FoodShare.'}
+                        {success || 'Your email address has been successfully verified. You now have full access to FeedReach.'}
                     </p>
                     <Link to="/login">
                         <Button variant="hero" size="lg" className="w-full h-12 text-base">
@@ -162,7 +165,7 @@ const AuthAction = () => {
                             <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                                 <Leaf className="h-5 w-5 text-white" />
                             </div>
-                            <span className="text-xl font-display font-bold text-white">FoodShare</span>
+                            <span className="text-xl font-display font-bold text-white">FeedReach</span>
                         </Link>
                     </div>
 
@@ -218,6 +221,8 @@ const AuthAction = () => {
                                 />
                             </div>
 
+
+
                             <Button type="submit" className="w-full h-11 text-base group" disabled={loading}>
                                 {loading ? (
                                     <>
@@ -233,8 +238,8 @@ const AuthAction = () => {
                             </Button>
                         </form>
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
         );
     }
 

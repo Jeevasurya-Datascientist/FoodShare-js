@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import AuthAction from "./pages/AuthAction";
+import VerifyEmail from "./pages/VerifyEmail";
 import DonorDashboard from "./pages/DonorDashboard";
 import NGODashboard from "./pages/NGODashboard";
 import VolunteerDashboard from "./pages/VolunteerDashboard";
@@ -53,6 +54,7 @@ const App = () => {
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/auth/action" element={<AuthAction />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route
                   path="/donor/dashboard"

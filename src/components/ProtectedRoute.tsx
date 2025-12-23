@@ -28,6 +28,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
+  if (!currentUser.emailVerified && currentUser.providerData[0]?.providerId === 'password') {
+    // Only enforce for password users (Google usually verifies automatically)
+    // Also, verify-email page should not be protected by this component in a way that causes loop
+    // But ProtectedRoute wraps dashboards, so redirecting to /verify-email (which is public/unprotected) is safe.
+    return <Navigate to="/verify-email" replace />;
+  }
+
   if (allowedRoles && userData && !allowedRoles.includes(userData.role)) {
     // Redirect to appropriate dashboard based on role
     const redirectPath = userData.role === 'donor' ? '/donor/dashboard' : '/ngo/dashboard';

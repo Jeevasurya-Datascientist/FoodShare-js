@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Leaf, Loader2, AlertCircle, ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
 
+
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+
     const { resetPassword } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -50,7 +52,7 @@ const ForgotPassword = () => {
                         <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                             <Leaf className="h-5 w-5 text-primary" />
                         </div>
-                        <span className="text-xl font-display font-bold text-foreground">FoodShare</span>
+                        <span className="text-xl font-display font-bold text-foreground">FeedReach</span>
                     </Link>
                 </div>
 
@@ -64,7 +66,7 @@ const ForgotPassword = () => {
                 </div>
 
                 <div className="relative z-10 text-sm text-muted-foreground">
-                    © 2026 FoodShare. Reducing food waste, one meal at a time.
+                    © 2026 FeedReach. Reducing food waste, one meal at a time.
                 </div>
             </div>
 
@@ -75,7 +77,7 @@ const ForgotPassword = () => {
                         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                             <Leaf className="h-4 w-4 text-primary" />
                         </div>
-                        <span className="text-lg font-display font-bold text-foreground">FoodShare</span>
+                        <span className="text-lg font-display font-bold text-foreground">FeedReach</span>
                     </Link>
                 </div>
 
@@ -125,6 +127,8 @@ const ForgotPassword = () => {
                                 />
                             </div>
                         </div>
+
+
 
                         <Button type="submit" className="w-full h-11 text-base" disabled={loading}>
                             {loading ? (

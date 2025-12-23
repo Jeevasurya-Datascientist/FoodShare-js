@@ -108,7 +108,7 @@ const Navbar: React.FC = () => {
               <Leaf className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-display font-bold text-foreground">
-              FoodShare
+              FeedReach
             </span>
           </Link>
 
